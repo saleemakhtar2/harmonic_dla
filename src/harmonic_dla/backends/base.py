@@ -8,7 +8,8 @@ import numpy as np
 import numpy.typing as npt
 
 from harmonic_dla.config import RunConfig
-from harmonic_dla.models import SimulationResult
+from harmonic_dla.enums import RestartMode
+from harmonic_dla.models import ProbeResult, SimulationResult
 
 FloatArray = npt.NDArray[np.float64]
 
@@ -31,4 +32,18 @@ class Backend(Protocol):
         seed: int,
     ) -> FloatArray:
         """Draw frozen-cluster attachment probes."""
+        ...
+
+    def probe_detailed(
+        self,
+        positions: FloatArray,
+        particle_radius: float,
+        center: tuple[float, float],
+        death_ratio: float,
+        launch_margin: float,
+        probes: int,
+        seed: int,
+        restart_mode: RestartMode,
+    ) -> ProbeResult:
+        """Draw probes and return walker diagnostics."""
         ...

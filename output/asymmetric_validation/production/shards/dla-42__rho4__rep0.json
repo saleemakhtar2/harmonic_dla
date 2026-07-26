@@ -1,0 +1,143 @@
+{
+  "backend": "numba-cpu",
+  "cell_seconds": 0.14627575100166723,
+  "complete": true,
+  "config": {
+    "angle_bins": [
+      16,
+      32,
+      64,
+      128
+    ],
+    "backend": "numba-cpu",
+    "evaluation_probes": 50000,
+    "experiment_version": "asymmetric-v1",
+    "launch_margin": 4.0,
+    "particle_radius": 0.5,
+    "phase": "production",
+    "primary_fit_window": [
+      3,
+      4,
+      6,
+      8,
+      12,
+      16
+    ],
+    "rho": 4,
+    "search_probes": 8192
+  },
+  "experiment_version": "asymmetric-v1",
+  "geometry": {
+    "diameter_upper": 60.85565810754953,
+    "metric": {
+      "center": [
+        0.0,
+        0.0
+      ],
+      "death_over_diameter": 1.6519892175278037,
+      "death_radius": 100.53289101923029,
+      "diameter_upper": 60.85565810754953,
+      "launch_radius": 27.133222754807573,
+      "target_radius": 25.133222754807573
+    },
+    "metric_center": [
+      0.0,
+      0.0
+    ],
+    "one_shot": {
+      "center": [
+        -0.38882343665190583,
+        2.9069771855861912
+      ],
+      "death_over_diameter": 1.5303696028509104,
+      "death_radius": 93.13164932928136,
+      "diameter_upper": 60.85565810754953,
+      "launch_radius": 25.28291233232034,
+      "target_radius": 23.28291233232034
+    },
+    "one_shot_center": [
+      -0.38882343665190583,
+      2.9069771855861912
+    ],
+    "target_radius_metric_center": 25.133222754807573,
+    "target_radius_one_shot_center": 23.28291233232034
+  },
+  "particle_radius": 0.5,
+  "phase": "production",
+  "policies": {
+    "one-shot-centered": {
+      "angle_tv": {
+        "128": 0.020780000000000003,
+        "16": 0.007919999999999996,
+        "32": 0.009720000000000003,
+        "64": 0.013260000000000008
+      },
+      "barycenter_error_over_diameter": 0.0025829719947090073,
+      "bounded_lipschitz": 0.002582838801769509,
+      "calibration_probes": 8192,
+      "center_residual_over_diameter": 0.04819380133285005,
+      "evaluation_seconds": 0.04477558395592496,
+      "particle_id_tv": 0.019559999999999987,
+      "restarts": 12251,
+      "samples": 50000,
+      "search_probes": 8192,
+      "search_seconds": 0.010750834015198052,
+      "seconds": 0.05552641797112301,
+      "seed": 5444296592738703790,
+      "walker_steps": 1830061
+    },
+    "uniform": {
+      "angle_tv": {
+        "128": 0.021559999999999996,
+        "16": 0.0059999999999999845,
+        "32": 0.009699999999999993,
+        "64": 0.014400000000000003
+      },
+      "barycenter_error_over_diameter": 0.0013238212108487382,
+      "bounded_lipschitz": 0.0013237370455983174,
+      "calibration_probes": 0,
+      "particle_id_tv": 0.018240000000000003,
+      "restarts": 14702,
+      "samples": 50000,
+      "seconds": 0.041633250017184764,
+      "seed": 6302859555285093982,
+      "walker_steps": 1928835
+    }
+  },
+  "primary_fit_window": true,
+  "provenance": {
+    "byteorder": "little",
+    "git_commit": null,
+    "harmonic_dla_version": "0.1.0",
+    "machine": "arm64",
+    "numba_version": "0.66.0",
+    "numpy_version": "2.4.6",
+    "platform": "macOS-26.3.1-arm64-arm-64bit-Mach-O",
+    "python_implementation": "CPython",
+    "python_version": "3.13.1",
+    "source_revision": null
+  },
+  "reference": {
+    "restarts": 14536,
+    "samples": 50000,
+    "seconds": 0.04911608301335946,
+    "seed": 6642503705130762592,
+    "split_half_particle_id_tv": 0.02723999999999999,
+    "split_half_standard_error": 0.019261588719521546,
+    "walker_steps": 1927424
+  },
+  "replication": 0,
+  "replication_seed": 628405809978443230,
+  "requested_seed": 628405809978443230,
+  "rho": 4,
+  "schema_version": 1,
+  "seeds": {
+    "center_evaluation": 5444296592738703790,
+    "center_search": 6429293806573168810,
+    "exact_evaluation": 6642503705130762592,
+    "uniform_evaluation": 6302859555285093982
+  },
+  "target_digest": "4dc61aaf005ecf1e3267cd5f65c9632fd2eb5102ac0c26af67e77117b571b830",
+  "target_name": "dla-42",
+  "target_particle_count": 256
+}

@@ -21,11 +21,11 @@ from harmonic_dla.backends.numba_cpu.kernels import (
 )
 from harmonic_dla.backends.numba_cpu.quadtree import initialize_tree, insert_particle
 from harmonic_dla.calibration import empirical_center, validate_center
-from harmonic_dla.certificates import one_shot_diameter_tv_bound
+from harmonic_dla.certificates import amortized_local_tv_bound
 from harmonic_dla.config import RunConfig, config_to_dict
 from harmonic_dla.enums import CalibrationStrategy, RestartMode
 from harmonic_dla.exceptions import SimulationError
-from harmonic_dla.models import SimulationDiagnostics, SimulationResult
+from harmonic_dla.models import ProbeResult, SimulationDiagnostics, SimulationResult
 from harmonic_dla.provenance import runtime_provenance
 from harmonic_dla.schedules import AmortizedSchedule
 
@@ -72,7 +72,19 @@ def _allocate_tree(
     )
     capture_distance = 2.0 * particle_radius
     # A chain of touching particles cannot extend farther than this conservative root.
-    root_half_size = capture_distance * (maximum_particles + 4)
+    # Centering from the observed bounds keeps the index translation invariant for probes,
+    # while the generous half-size still reserves room for future growth from the seed.
+    observed = positions[:particle_count]
+    min_x = float(np.min(observed[:, 0]))
+    max_x = float(np.max(observed[:, 0]))
+    min_y = float(np.min(observed[:, 1]))
+    max_y = float(np.max(observed[:, 1]))
+    root_center_x = 0.5 * (min_x + max_x)
+    root_center_y = 0.5 * (min_y + max_y)
+    root_half_size = max(
+        capture_distance * (maximum_particles + 4),
+        0.5 * max(max_x - min_x, max_y - min_y) + capture_distance,
+    )
     initialize_tree(
         tree.center_x,
         tree.center_y,
@@ -81,8 +93,8 @@ def _allocate_tree(
         tree.counts,
         tree.items,
         tree.node_count,
-        0.0,
-        0.0,
+        root_center_x,
+        root_center_y,
         root_half_size,
     )
     for index in range(particle_count):
@@ -169,6 +181,7 @@ class NumbaCPUBackend:
         tolerance: float,
         max_steps: int,
         max_restarts: int,
+        restart_mode: int = UNIFORM_RESTART,
     ) -> tuple[FloatArray, int, int]:
         attachments, statuses, step_counts, restart_counts = probe_batch(
             seed,
@@ -191,6 +204,7 @@ class NumbaCPUBackend:
             tolerance,
             max_steps,
             max_restarts,
+            restart_mode,
         )
         _check_probe_statuses(statuses)
         return attachments, int(np.sum(step_counts)), int(np.sum(restart_counts))
@@ -235,6 +249,53 @@ class NumbaCPUBackend:
         )
         return attachments
 
+    def probe_detailed(
+        self,
+        positions: FloatArray,
+        particle_radius: float,
+        center: tuple[float, float],
+        death_ratio: float,
+        launch_margin: float,
+        probes: int,
+        seed: int,
+        restart_mode: RestartMode,
+    ) -> ProbeResult:
+        """Draw probes with an explicit return law and walker diagnostics."""
+        if probes < 1:
+            raise ValueError("probes must be positive")
+        if not isinstance(restart_mode, RestartMode) or restart_mode not in (
+            RestartMode.UNIFORM_RESTART,
+            RestartMode.EXACT_RETURN,
+        ):
+            raise ValueError("restart_mode must be exact-return or uniform-restart")
+        array = np.ascontiguousarray(positions, dtype=np.float64)
+        tree = _allocate_tree(
+            array,
+            int(array.shape[0]),
+            int(array.shape[0]),
+            12,
+            10,
+            particle_radius,
+        )
+        attachments, walker_steps, restarts = self._probe_with_tree(
+            array,
+            int(array.shape[0]),
+            tree,
+            particle_radius,
+            center,
+            TARGET_RADIUS_SCALE,
+            death_ratio,
+            launch_margin,
+            probes,
+            seed,
+            1 << 40,
+            1.0e-6,
+            100_000,
+            100_000,
+            int(restart_mode),
+        )
+        return ProbeResult(attachments, walker_steps, restarts)
+
     def _build_result(
         self,
         positions: FloatArray,
@@ -276,11 +337,8 @@ class NumbaCPUBackend:
             metadata=metadata,
         )
 
-    def simulate(self, config: RunConfig) -> SimulationResult:
-        """Grow one aggregate according to ``config``."""
-        if config.performance.threads > 0:
-            set_num_threads(config.performance.threads)
-
+    def _simulate(self, config: RunConfig) -> SimulationResult:
+        """Grow one aggregate according to ``config`` with the requested thread state."""
         started = time.perf_counter()
         positions = np.empty((config.particles, 2), dtype=np.float64)
         positions[0] = (0.0, 0.0)
@@ -299,12 +357,24 @@ class NumbaCPUBackend:
         total_probe_steps = 0
         total_probe_restarts = 0
         total_probes = 0
+        checkpoint_path = _checkpoint_path(config.output.path)
+        checkpoint_initialized = False
+        if (
+            config.output.checkpoint_every > 0
+            and checkpoint_path.exists()
+            and not config.output.overwrite
+        ):
+            raise SimulationError(f"refusing to overwrite existing checkpoint: {checkpoint_path}")
         center = config.boundary.center
         center_history: list[tuple[float, float]] = []
         size_history: list[int] = []
         bound_history: list[float] = []
         failure_history: list[float] = []
         ratio_history: list[float] = []
+        block_index_history: list[int] = []
+        probe_count_history: list[int] = []
+        search_probe_history: list[int] = []
+        validation_probe_history: list[int] = []
         calibration_index = 0
         last_checkpoint = 1
         capture_distance = 2.0 * config.particle_radius
@@ -328,6 +398,8 @@ class NumbaCPUBackend:
             death_scale_kind = TARGET_RADIUS_SCALE
             ratio_scale = config.boundary.death_ratio
             ratio_alpha = 0.0
+            search_probe_count = 0
+            validation_probe_count = 0
             kernel_restart_mode = int(config.boundary.restart_mode)
             stop = config.particles
 
@@ -397,12 +469,16 @@ class NumbaCPUBackend:
                     )
                     bound = calibration.tv_bound
                     probes_used = (
-                        config.calibration.search_probes
-                        + config.calibration.validation_probes
+                        config.calibration.search_probes + config.calibration.validation_probes
                     )
+                    search_probe_count = config.calibration.search_probes
+                    validation_probe_count = config.calibration.validation_probes
                     failure_probability = config.calibration.confidence_failure
                     ratio = config.boundary.death_ratio
-                    stop = min(config.particles, count + config.calibration.block_size)
+                    # The fixed sample-split certificate is for the frozen target at
+                    # calibration time. Recalibrate before every attachment so the
+                    # recorded bound remains conditional on the current target.
+                    stop = min(config.particles, count + 1)
                     death_scale_kind = TARGET_RADIUS_SCALE
                     ratio_scale = ratio
                     ratio_alpha = 0.0
@@ -429,12 +505,18 @@ class NumbaCPUBackend:
                     total_probe_restarts += restarts
                     center = empirical_center(search)
                     geometry = _geometry(positions, count, center, capture_distance)
-                    bound = one_shot_diameter_tv_bound(
-                        ratio,
-                        block.probes,
-                        block.failure_probability,
+                    # The one-shot bound only covers the frozen target. The
+                    # amortized schedule's certified local term also pays for
+                    # deterministic center drift across the block.
+                    bound = amortized_local_tv_bound(
+                        count,
+                        alpha=schedule.alpha,
+                        gamma=schedule.gamma,
+                        scale=schedule.scale,
+                        start=schedule.start,
                     )
                     probes_used = block.probes
+                    search_probe_count = block.probes
                     failure_probability = block.failure_probability
                     stop = block.stop
                     death_scale_kind = DIAMETER_UPPER_SCALE
@@ -447,6 +529,10 @@ class NumbaCPUBackend:
                 bound_history.append(bound)
                 failure_history.append(failure_probability)
                 ratio_history.append(ratio)
+                block_index_history.append(calibration_index)
+                probe_count_history.append(probes_used)
+                search_probe_history.append(search_probe_count)
+                validation_probe_history.append(validation_probe_count)
                 total_probes += probes_used
                 kernel_restart_mode = UNIFORM_RESTART
             else:
@@ -517,9 +603,9 @@ class NumbaCPUBackend:
                     calibration_walker_steps=total_probe_steps,
                     calibration_restarts=total_probe_restarts,
                     calibration_probes=total_probes,
-                    calibration_centers=np.asarray(
-                        center_history, dtype=np.float64
-                    ).reshape((-1, 2)),
+                    calibration_centers=np.asarray(center_history, dtype=np.float64).reshape(
+                        (-1, 2)
+                    ),
                     calibration_sizes=np.asarray(size_history, dtype=np.int64),
                     calibration_bounds=np.asarray(bound_history, dtype=np.float64),
                     calibration_failure_probabilities=np.asarray(
@@ -527,6 +613,12 @@ class NumbaCPUBackend:
                         dtype=np.float64,
                     ),
                     calibration_death_ratios=np.asarray(ratio_history, dtype=np.float64),
+                    calibration_block_indices=np.asarray(block_index_history, dtype=np.int64),
+                    calibration_probe_counts=np.asarray(probe_count_history, dtype=np.int64),
+                    calibration_search_probes=np.asarray(search_probe_history, dtype=np.int64),
+                    calibration_validation_probes=np.asarray(
+                        validation_probe_history, dtype=np.int64
+                    ),
                 )
                 checkpoint = self._build_result(
                     positions,
@@ -538,7 +630,11 @@ class NumbaCPUBackend:
                     center,
                     complete=False,
                 )
-                checkpoint.save(_checkpoint_path(config.output.path), overwrite=True)
+                checkpoint.save(
+                    checkpoint_path,
+                    overwrite=checkpoint_initialized or config.output.overwrite,
+                )
+                checkpoint_initialized = True
                 last_checkpoint = count
 
         diagnostics = SimulationDiagnostics(
@@ -552,6 +648,10 @@ class NumbaCPUBackend:
             calibration_bounds=np.asarray(bound_history, dtype=np.float64),
             calibration_failure_probabilities=np.asarray(failure_history, dtype=np.float64),
             calibration_death_ratios=np.asarray(ratio_history, dtype=np.float64),
+            calibration_block_indices=np.asarray(block_index_history, dtype=np.int64),
+            calibration_probe_counts=np.asarray(probe_count_history, dtype=np.int64),
+            calibration_search_probes=np.asarray(search_probe_history, dtype=np.int64),
+            calibration_validation_probes=np.asarray(validation_probe_history, dtype=np.int64),
         )
         return self._build_result(
             positions,
@@ -563,3 +663,19 @@ class NumbaCPUBackend:
             center,
             complete=True,
         )
+
+    def simulate(self, config: RunConfig) -> SimulationResult:
+        """Grow one aggregate while restoring the caller's Numba thread state."""
+        previous_threads = get_num_threads()
+        try:
+            if config.performance.threads > previous_threads:
+                raise SimulationError(
+                    "performance.threads exceeds the active Numba thread capacity "
+                    f"({previous_threads})"
+                )
+            if config.performance.threads > 0:
+                set_num_threads(config.performance.threads)
+            return self._simulate(config)
+        finally:
+            if get_num_threads() != previous_threads:
+                set_num_threads(previous_threads)

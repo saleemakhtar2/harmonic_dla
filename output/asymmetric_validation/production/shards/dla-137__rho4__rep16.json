@@ -1,0 +1,143 @@
+{
+  "backend": "numba-cpu",
+  "cell_seconds": 0.12620525003876537,
+  "complete": true,
+  "config": {
+    "angle_bins": [
+      16,
+      32,
+      64,
+      128
+    ],
+    "backend": "numba-cpu",
+    "evaluation_probes": 50000,
+    "experiment_version": "asymmetric-v1",
+    "launch_margin": 4.0,
+    "particle_radius": 0.5,
+    "phase": "production",
+    "primary_fit_window": [
+      3,
+      4,
+      6,
+      8,
+      12,
+      16
+    ],
+    "rho": 4,
+    "search_probes": 8192
+  },
+  "experiment_version": "asymmetric-v1",
+  "geometry": {
+    "diameter_upper": 57.65041090434076,
+    "metric": {
+      "center": [
+        0.0,
+        0.0
+      ],
+      "death_over_diameter": 2.0006101992846044,
+      "death_radius": 115.33600004817251,
+      "diameter_upper": 57.65041090434076,
+      "launch_radius": 30.834000012043127,
+      "target_radius": 28.834000012043127
+    },
+    "metric_center": [
+      0.0,
+      0.0
+    ],
+    "one_shot": {
+      "center": [
+        -1.4947816655207973,
+        -4.692658163429736
+      ],
+      "death_over_diameter": 1.6648710620704499,
+      "death_radius": 95.98050083110765,
+      "diameter_upper": 57.65041090434076,
+      "launch_radius": 25.995125207776912,
+      "target_radius": 23.995125207776912
+    },
+    "one_shot_center": [
+      -1.4947816655207973,
+      -4.692658163429736
+    ],
+    "target_radius_metric_center": 28.834000012043127,
+    "target_radius_one_shot_center": 23.995125207776912
+  },
+  "particle_radius": 0.5,
+  "phase": "production",
+  "policies": {
+    "one-shot-centered": {
+      "angle_tv": {
+        "128": 0.022360000000000005,
+        "16": 0.0068999999999999825,
+        "32": 0.010220000000000003,
+        "64": 0.015379999999999996
+      },
+      "barycenter_error_over_diameter": 0.0015613212166594994,
+      "bounded_lipschitz": 0.0015191603422893413,
+      "calibration_probes": 8192,
+      "center_residual_over_diameter": 0.08542833236205181,
+      "evaluation_seconds": 0.03865204204339534,
+      "particle_id_tv": 0.018320000000000006,
+      "restarts": 14605,
+      "samples": 50000,
+      "search_probes": 8192,
+      "search_seconds": 0.00808145897462964,
+      "seconds": 0.04673350101802498,
+      "seed": 5412878602978255532,
+      "walker_steps": 1914298
+    },
+    "uniform": {
+      "angle_tv": {
+        "128": 0.025140000000000003,
+        "16": 0.010020000000000001,
+        "32": 0.012120000000000004,
+        "64": 0.018160000000000003
+      },
+      "barycenter_error_over_diameter": 0.004565886356814479,
+      "bounded_lipschitz": 0.004556912223110721,
+      "calibration_probes": 0,
+      "particle_id_tv": 0.021139999999999996,
+      "restarts": 20511,
+      "samples": 50000,
+      "seconds": 0.04058304103091359,
+      "seed": 7060898634966750138,
+      "walker_steps": 2139742
+    }
+  },
+  "primary_fit_window": true,
+  "provenance": {
+    "byteorder": "little",
+    "git_commit": null,
+    "harmonic_dla_version": "0.1.0",
+    "machine": "arm64",
+    "numba_version": "0.66.0",
+    "numpy_version": "2.4.6",
+    "platform": "macOS-26.3.1-arm64-arm-64bit-Mach-O",
+    "python_implementation": "CPython",
+    "python_version": "3.13.1",
+    "source_revision": null
+  },
+  "reference": {
+    "restarts": 20865,
+    "samples": 50000,
+    "seconds": 0.0388887079898268,
+    "seed": 8167860903287468617,
+    "split_half_particle_id_tv": 0.025440000000000008,
+    "split_half_standard_error": 0.017988796513385773,
+    "walker_steps": 2148893
+  },
+  "replication": 16,
+  "replication_seed": 2844354820875222658,
+  "requested_seed": 2844354820875222658,
+  "rho": 4,
+  "schema_version": 1,
+  "seeds": {
+    "center_evaluation": 5412878602978255532,
+    "center_search": 2674947532967292649,
+    "exact_evaluation": 8167860903287468617,
+    "uniform_evaluation": 7060898634966750138
+  },
+  "target_digest": "b47635077b5401d6929971a93af38a51bc2bd91e637aa0ab1d83874f1f23a779",
+  "target_name": "dla-137",
+  "target_particle_count": 256
+}

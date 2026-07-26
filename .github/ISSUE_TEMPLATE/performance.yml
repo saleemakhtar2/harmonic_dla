@@ -1,0 +1,14 @@
+name: Performance report
+description: Propose or report a measured performance change
+body:
+  - type: textarea
+    attributes:
+      label: Benchmark protocol
+      description: Include warmup, hardware, thread count, config, accuracy criterion, and raw data.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Results
+    validations:
+      required: true

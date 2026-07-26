@@ -10,11 +10,11 @@ import numpy.typing as npt
 
 from harmonic_dla.boundaries import poisson_return_delta
 from harmonic_dla.calibration import empirical_center, validate_center
-from harmonic_dla.certificates import one_shot_diameter_tv_bound
+from harmonic_dla.certificates import amortized_local_tv_bound
 from harmonic_dla.config import RunConfig, config_to_dict
 from harmonic_dla.enums import CalibrationStrategy, RestartMode
 from harmonic_dla.exceptions import SimulationError
-from harmonic_dla.models import SimulationDiagnostics, SimulationResult
+from harmonic_dla.models import ProbeResult, SimulationDiagnostics, SimulationResult
 from harmonic_dla.provenance import runtime_provenance
 from harmonic_dla.schedules import AmortizedSchedule
 
@@ -145,6 +145,7 @@ class ReferenceBackend:
         tolerance: float,
         max_steps: int,
         max_restarts: int,
+        restart_mode: RestartMode = RestartMode.UNIFORM_RESTART,
     ) -> tuple[FloatArray, int, int]:
         radius, diameter_upper = _geometry(positions, center, 2.0 * particle_radius)
         birth_radius = radius + launch_margin * particle_radius
@@ -162,7 +163,7 @@ class ReferenceBackend:
                 center,
                 birth_radius,
                 death_radius,
-                RestartMode.UNIFORM_RESTART,
+                restart_mode,
                 tolerance,
                 max_steps,
                 max_restarts,
@@ -199,6 +200,40 @@ class ReferenceBackend:
         )
         return attachments
 
+    def probe_detailed(
+        self,
+        positions: FloatArray,
+        particle_radius: float,
+        center: tuple[float, float],
+        death_ratio: float,
+        launch_margin: float,
+        probes: int,
+        seed: int,
+        restart_mode: RestartMode,
+    ) -> ProbeResult:
+        """Draw probes with an explicit return law and walker diagnostics."""
+        if not isinstance(restart_mode, RestartMode) or restart_mode not in (
+            RestartMode.UNIFORM_RESTART,
+            RestartMode.EXACT_RETURN,
+        ):
+            raise ValueError("restart_mode must be exact-return or uniform-restart")
+        attachments, walker_steps, restarts = self._probe_scaled(
+            np.ascontiguousarray(positions, dtype=np.float64),
+            particle_radius,
+            center,
+            death_ratio,
+            launch_margin,
+            probes,
+            seed,
+            1 << 40,
+            diameter_scaled=False,
+            tolerance=1.0e-6,
+            max_steps=100_000,
+            max_restarts=100_000,
+            restart_mode=restart_mode,
+        )
+        return ProbeResult(attachments, walker_steps, restarts)
+
     def simulate(self, config: RunConfig) -> SimulationResult:
         """Grow a small aggregate using brute-force nearest-neighbour queries."""
         started = time.perf_counter()
@@ -216,6 +251,10 @@ class ReferenceBackend:
         bounds: list[float] = []
         failures: list[float] = []
         ratios: list[float] = []
+        block_indices: list[int] = []
+        probe_counts: list[int] = []
+        search_probe_counts: list[int] = []
+        validation_probe_counts: list[int] = []
         calibration_index = 0
 
         schedule: AmortizedSchedule | None = None
@@ -298,7 +337,11 @@ class ReferenceBackend:
                     bound = calibration.tv_bound
                     failure = config.calibration.confidence_failure
                     used = config.calibration.search_probes + config.calibration.validation_probes
-                    stop = min(config.particles, count + config.calibration.block_size)
+                    search_used = config.calibration.search_probes
+                    validation_used = config.calibration.validation_probes
+                    # A sample-split bound is conditional on the frozen target at
+                    # calibration time; recalibrate before every attachment.
+                    stop = min(config.particles, count + 1)
                 else:
                     block = schedule.block_at(calibration_index, count, config.particles)
                     ratio = block.diameter_ratio
@@ -321,19 +364,27 @@ class ReferenceBackend:
                     probe_steps += steps
                     probe_restarts += restarts
                     center = empirical_center(search)
-                    bound = one_shot_diameter_tv_bound(
-                        ratio,
-                        block.probes,
-                        block.failure_probability,
+                    bound = amortized_local_tv_bound(
+                        count,
+                        alpha=schedule.alpha,
+                        gamma=schedule.gamma,
+                        scale=schedule.scale,
+                        start=schedule.start,
                     )
                     failure = block.failure_probability
                     used = block.probes
+                    search_used = block.probes
+                    validation_used = 0
                     stop = block.stop
                 centers.append(center)
                 sizes.append(count)
                 bounds.append(bound)
                 failures.append(failure)
                 ratios.append(ratio)
+                block_indices.append(calibration_index)
+                probe_counts.append(used)
+                search_probe_counts.append(search_used)
+                validation_probe_counts.append(validation_used)
                 probe_count += used
                 restart_mode = RestartMode.UNIFORM_RESTART
                 calibration_index += 1
@@ -345,9 +396,7 @@ class ReferenceBackend:
                     2.0 * config.particle_radius,
                 )
                 current_ratio = (
-                    ratio
-                    if ratio_alpha == 0.0
-                    else config.calibration.scale * count**ratio_alpha
+                    ratio if ratio_alpha == 0.0 else config.calibration.scale * count**ratio_alpha
                 )
                 birth_radius = radius + config.boundary.launch_margin * config.particle_radius
                 death_radius = current_ratio * (diameter_upper if diameter_scaled else radius)
@@ -381,6 +430,10 @@ class ReferenceBackend:
             calibration_bounds=np.asarray(bounds, dtype=np.float64),
             calibration_failure_probabilities=np.asarray(failures, dtype=np.float64),
             calibration_death_ratios=np.asarray(ratios, dtype=np.float64),
+            calibration_block_indices=np.asarray(block_indices, dtype=np.int64),
+            calibration_probe_counts=np.asarray(probe_counts, dtype=np.int64),
+            calibration_search_probes=np.asarray(search_probe_counts, dtype=np.int64),
+            calibration_validation_probes=np.asarray(validation_probe_counts, dtype=np.int64),
         )
         metadata = runtime_provenance()
         metadata.update(
@@ -389,6 +442,11 @@ class ReferenceBackend:
                 "complete": True,
                 "elapsed_seconds": time.perf_counter() - started,
                 "numerical_model": "reference walk-on-spheres with brute-force nearest queries",
+                "walker_tolerance": config.walker.tolerance,
+                "final_center": [center[0], center[1]],
+                "paper_certificate_scope": (
+                    "one-step and schedule-local bounds; numerical WOS tolerance is separate"
+                ),
                 "config": config_to_dict(config),
             }
         )

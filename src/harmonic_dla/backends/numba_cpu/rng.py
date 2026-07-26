@@ -32,7 +32,9 @@ def _splitmix64(value: np.uint64) -> tuple[np.uint64, np.uint64]:
 @njit(cache=True)
 def seed_state(master_seed: int, stream: int) -> np.ndarray:
     """Create one xoshiro256** state from a master seed and stream id."""
-    mixed = np.uint64(master_seed) ^ ((np.uint64(stream) + np.uint64(1)) * _GOLDEN)
+    # Addition preserves both inputs through the SplitMix avalanche. XOR would
+    # make the two-dimensional seed/stream domain trivially collide.
+    mixed = np.uint64(master_seed) + (np.uint64(stream) + np.uint64(1)) * _GOLDEN
     state = np.empty(4, dtype=np.uint64)
     for i in range(4):
         mixed, state[i] = _splitmix64(mixed)

@@ -22,6 +22,11 @@ def test_poisson_return_rejects_endpoints() -> None:
         poisson_return_delta(0.5, np.asarray([0.0, 0.5]))
 
 
+def test_poisson_return_rejects_nonfinite_uniforms() -> None:
+    with pytest.raises(ValueError, match="finite"):
+        poisson_return_delta(0.5, np.asarray([np.nan]))
+
+
 def test_launch_point_validation() -> None:
     from harmonic_dla.boundaries import launch_point
 

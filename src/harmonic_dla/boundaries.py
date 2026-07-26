@@ -15,6 +15,8 @@ def poisson_return_delta(q: float, uniforms: FloatArray) -> FloatArray:
     if not 0.0 <= q < 1.0:
         raise ValueError("q must lie in [0, 1)")
     u = np.asarray(uniforms, dtype=np.float64)
+    if not np.all(np.isfinite(u)):
+        raise ValueError("uniform samples must be finite")
     if np.any((u <= 0.0) | (u >= 1.0)):
         raise ValueError("uniform samples must lie strictly inside (0, 1)")
     phi = np.pi * (u - 0.5)

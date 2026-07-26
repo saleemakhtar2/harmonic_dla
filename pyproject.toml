@@ -38,6 +38,8 @@ dev = [
   "pytest>=9,<10",
   "pytest-benchmark>=5.1,<6",
   "pytest-cov>=7,<8",
+  "matplotlib>=3.8,<4",
+  "reportlab>=4,<5",
   "ruff>=0.16,<0.17",
   "ty>=0.0.40,<0.1",
 ]
@@ -50,7 +52,7 @@ harmonic_dla = ["py.typed"]
 
 [tool.uv]
 default-groups = ["dev"]
-required-version = ">=0.10.0,<0.11"
+required-version = ">=0.11.0,<0.12"
 
 [tool.ruff]
 target-version = "py311"

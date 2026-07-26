@@ -30,3 +30,42 @@ def test_quadtree_matches_brute_force() -> None:
         assert actual_sq == pytest.approx(expected_sq, rel=0.0, abs=1.0e-14)
         assert np.sum((positions[actual_index] - query) ** 2) == pytest.approx(expected_sq)
         assert np.sum((positions[expected_index] - query) ** 2) == pytest.approx(expected_sq)
+
+
+def test_quadtree_accepts_translated_positions() -> None:
+    positions = np.asarray([[100.0, -75.0], [101.0, -75.0]], dtype=np.float64)
+    tree = _allocate_tree(positions, 2, 2, 8, 12, 0.5)
+    index, squared = brute_force_nearest(100.2, -75.1, positions, 2)
+    actual_index, actual_squared = nearest_particle(
+        100.2,
+        -75.1,
+        positions,
+        2,
+        tree.center_x,
+        tree.center_y,
+        tree.half_size,
+        tree.children,
+        tree.counts,
+        tree.items,
+    )
+    assert actual_index == index
+    assert actual_squared == pytest.approx(squared)
+
+
+def test_quadtree_deduplicates_coincident_positions() -> None:
+    positions = np.zeros((13, 2), dtype=np.float64)
+    tree = _allocate_tree(positions, 13, 13, 12, 10, 0.5)
+    index, squared = nearest_particle(
+        0.1,
+        0.0,
+        positions,
+        13,
+        tree.center_x,
+        tree.center_y,
+        tree.half_size,
+        tree.children,
+        tree.counts,
+        tree.items,
+    )
+    assert index >= 0
+    assert squared == pytest.approx(0.01)

@@ -11,7 +11,7 @@
 | Amortized `varrho_n`, `H_k`, `M_k`, `delta_k` schedule | `schedules.AmortizedSchedule` |
 | Exact exterior Poisson return | `boundaries.poisson_return_delta` and Numba kernel |
 | Frozen approximate-law probes | backend `probe` / compiled `probe_batch` |
-| Sample splitting | `calibration.validate_center` and backend orchestration |
+| Sample splitting | `calibration.validate_center` and backend orchestration (fixed mode recalibrates per attachment) |
 | Diameter-scaled controlled growth | Numba `DIAMETER_UPPER_SCALE` path |
 
 ## Important implementation distinction
@@ -22,5 +22,7 @@ box as an upper bound. Thus the actual death radius is at least the radius presc
 configured `varrho`; the theoretical certificate remains conservative.
 
 The repository does not infer a full infinite-history budget from one run unless every paper
-assumption and prefix treatment has been supplied. It records local block data so that the
-analysis scripts can construct the relevant budget explicitly.
+assumption and prefix treatment has been supplied. It records local block data, including
+probe splits and block endpoints, so that the analysis scripts can construct the relevant
+budget explicitly. Paper-amortized local bounds include the theorem's stale-center drift term;
+finite walk-on-spheres tolerance remains outside that analytical restart budget.
