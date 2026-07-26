@@ -59,6 +59,7 @@ def test_reference_probe_is_reproducible() -> None:
         ("launch_margin", 0.0, "launch_margin"),
         ("probes", 0, "probes"),
         ("seed", -1, "seed"),
+        ("seed", 2**63, "seed"),
     ],
 )
 def test_probe_rejects_invalid_scalar_parameters(

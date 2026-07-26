@@ -1,0 +1,143 @@
+{
+  "backend": "numba-cpu",
+  "cell_seconds": 0.16483924898784608,
+  "complete": true,
+  "config": {
+    "angle_bins": [
+      16,
+      32,
+      64,
+      128
+    ],
+    "backend": "numba-cpu",
+    "evaluation_probes": 50000,
+    "experiment_version": "asymmetric-v1",
+    "launch_margin": 4.0,
+    "particle_radius": 0.5,
+    "phase": "production",
+    "primary_fit_window": [
+      3,
+      4,
+      6,
+      8,
+      12,
+      16
+    ],
+    "rho": 4,
+    "search_probes": 8192
+  },
+  "experiment_version": "asymmetric-v1",
+  "geometry": {
+    "diameter_upper": 52.96862122095129,
+    "metric": {
+      "center": [
+        0.0,
+        0.0
+      ],
+      "death_over_diameter": 1.9241568920600551,
+      "death_radius": 101.91993758521193,
+      "diameter_upper": 52.96862122095129,
+      "launch_radius": 27.47998439630298,
+      "target_radius": 25.47998439630298
+    },
+    "metric_center": [
+      0.0,
+      0.0
+    ],
+    "one_shot": {
+      "center": [
+        -0.45498247049880103,
+        -1.7702197491179934
+      ],
+      "death_over_diameter": 1.7905343445453568,
+      "death_radius": 94.8421354793273,
+      "diameter_upper": 52.96862122095129,
+      "launch_radius": 25.710533869831824,
+      "target_radius": 23.710533869831824
+    },
+    "one_shot_center": [
+      -0.45498247049880103,
+      -1.7702197491179934
+    ],
+    "target_radius_metric_center": 25.47998439630298,
+    "target_radius_one_shot_center": 23.710533869831824
+  },
+  "particle_radius": 0.5,
+  "phase": "production",
+  "policies": {
+    "one-shot-centered": {
+      "angle_tv": {
+        "128": 0.019979999999999998,
+        "16": 0.008739999999999982,
+        "32": 0.011260000000000004,
+        "64": 0.014780000000000001
+      },
+      "barycenter_error_over_diameter": 0.0030796559406615796,
+      "bounded_lipschitz": 0.0028606300426545356,
+      "calibration_probes": 8192,
+      "center_residual_over_diameter": 0.03450636610228927,
+      "evaluation_seconds": 0.052142040978651494,
+      "particle_id_tv": 0.018199999999999994,
+      "restarts": 13763,
+      "samples": 50000,
+      "search_probes": 8192,
+      "search_seconds": 0.01131483301287517,
+      "seconds": 0.06345687399152666,
+      "seed": 1624520728373411316,
+      "walker_steps": 1881610
+    },
+    "uniform": {
+      "angle_tv": {
+        "128": 0.023999999999999994,
+        "16": 0.007059999999999986,
+        "32": 0.012039999999999999,
+        "64": 0.016679999999999997
+      },
+      "barycenter_error_over_diameter": 0.0012279605638762811,
+      "bounded_lipschitz": 0.0012089562568474224,
+      "calibration_probes": 0,
+      "particle_id_tv": 0.019979999999999994,
+      "restarts": 16175,
+      "samples": 50000,
+      "seconds": 0.05210100003750995,
+      "seed": 2191293376008561517,
+      "walker_steps": 1975609
+    }
+  },
+  "primary_fit_window": true,
+  "provenance": {
+    "byteorder": "little",
+    "git_commit": null,
+    "harmonic_dla_version": "0.1.0",
+    "machine": "arm64",
+    "numba_version": "0.66.0",
+    "numpy_version": "2.4.6",
+    "platform": "macOS-26.3.1-arm64-arm-64bit-Mach-O",
+    "python_implementation": "CPython",
+    "python_version": "3.13.1",
+    "source_revision": null
+  },
+  "reference": {
+    "restarts": 15955,
+    "samples": 50000,
+    "seconds": 0.049281374958809465,
+    "seed": 4827748359093605965,
+    "split_half_particle_id_tv": 0.025040000000000007,
+    "split_half_standard_error": 0.017705953800911153,
+    "walker_steps": 1971879
+  },
+  "replication": 12,
+  "replication_seed": 9162513056744676655,
+  "requested_seed": 9162513056744676655,
+  "rho": 4,
+  "schema_version": 1,
+  "seeds": {
+    "center_evaluation": 1624520728373411316,
+    "center_search": 7928041520105525005,
+    "exact_evaluation": 4827748359093605965,
+    "uniform_evaluation": 2191293376008561517
+  },
+  "target_digest": "70e15001e60101b350de0dc07670a26a427d1cf1fb4c068fa0abaa0304223b25",
+  "target_name": "dla-911",
+  "target_particle_count": 256
+}

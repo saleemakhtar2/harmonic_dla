@@ -1,0 +1,14 @@
+name: Bug report
+description: Report a reproducible correctness or runtime problem
+body:
+  - type: textarea
+    attributes:
+      label: Reproduction
+      description: Include config, seed, package version, platform, and exact command.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Expected and observed behavior
+    validations:
+      required: true

@@ -118,16 +118,26 @@ def insert_particle(
                 counts[node] = count + 1
                 return 0
 
-            if _create_children(
-                node,
-                node_center_x,
-                node_center_y,
-                node_half_size,
-                children,
-                counts,
-                items,
-                node_count,
-            ) < 0:
+            # Duplicate coordinates do not change nearest-neighbour geometry. Keep one
+            # representative in the leaf instead of recursively subdividing forever.
+            for slot in range(count):
+                existing = int(items[node, slot])
+                if positions[existing, 0] == x and positions[existing, 1] == y:
+                    return 0
+
+            if (
+                _create_children(
+                    node,
+                    node_center_x,
+                    node_center_y,
+                    node_half_size,
+                    children,
+                    counts,
+                    items,
+                    node_count,
+                )
+                < 0
+            ):
                 return -1
 
             for slot in range(bucket_size):

@@ -11,8 +11,8 @@ import numpy.typing as npt
 
 from harmonic_dla.backends.base import Backend
 from harmonic_dla.config import RunConfig, load_config
-from harmonic_dla.enums import BackendKind
-from harmonic_dla.models import SimulationResult
+from harmonic_dla.enums import BackendKind, RestartMode
+from harmonic_dla.models import ProbeResult, SimulationResult
 
 FloatArray = npt.NDArray[np.float64]
 ConfigLike = RunConfig | str | PathLike[str]
@@ -46,18 +46,15 @@ def simulate(config: ConfigLike) -> SimulationResult:
     return create_backend(resolved.backend).simulate(resolved)
 
 
-def probe(
+def _validate_probe_arguments(
     positions: FloatArray,
-    *,
     particle_radius: float,
-    center: tuple[float, float] = (0.0, 0.0),
-    death_ratio: float = 4.0,
-    launch_margin: float = 4.0,
-    probes: int = 1024,
-    seed: int = 0,
-    backend: BackendKind | str = BackendKind.NUMBA_CPU,
+    center: tuple[float, float],
+    death_ratio: float,
+    launch_margin: float,
+    probes: int,
+    seed: int,
 ) -> FloatArray:
-    """Draw target-radius-scaled uniform-restart attachment probes."""
     array = np.ascontiguousarray(positions, dtype=np.float64)
     if array.ndim != 2 or array.shape[1] != 2 or array.shape[0] < 1:
         raise ValueError("positions must have shape (n, 2) with n >= 1")
@@ -71,10 +68,41 @@ def probe(
         raise ValueError("death_ratio must be finite and greater than one")
     if not math.isfinite(launch_margin) or launch_margin <= 0.0:
         raise ValueError("launch_margin must be finite and positive")
-    if probes < 1:
-        raise ValueError("probes must be positive")
-    if seed < 0:
-        raise ValueError("seed must be non-negative")
+    if isinstance(probes, bool) or not isinstance(probes, (int, np.integer)) or probes < 1:
+        raise ValueError("probes must be a positive integer")
+    if isinstance(seed, bool) or not isinstance(seed, (int, np.integer)):
+        raise ValueError("seed must be an integer")
+    if seed < 0 or seed > np.iinfo(np.int64).max:
+        raise ValueError("seed must be a non-negative signed int64")
+    return array
+
+
+def _validate_probe_restart_mode(restart_mode: RestartMode) -> None:
+    if restart_mode not in (RestartMode.UNIFORM_RESTART, RestartMode.EXACT_RETURN):
+        raise ValueError("restart_mode must be exact-return or uniform-restart")
+
+
+def probe(
+    positions: FloatArray,
+    *,
+    particle_radius: float,
+    center: tuple[float, float] = (0.0, 0.0),
+    death_ratio: float = 4.0,
+    launch_margin: float = 4.0,
+    probes: int = 1024,
+    seed: int = 0,
+    backend: BackendKind | str = BackendKind.NUMBA_CPU,
+) -> FloatArray:
+    """Draw target-radius-scaled uniform-restart attachment probes."""
+    array = _validate_probe_arguments(
+        positions,
+        particle_radius,
+        center,
+        death_ratio,
+        launch_margin,
+        probes,
+        seed,
+    )
     return create_backend(backend).probe(
         array,
         particle_radius,
@@ -83,4 +111,41 @@ def probe(
         launch_margin,
         probes,
         seed,
+    )
+
+
+def probe_detailed(
+    positions: FloatArray,
+    *,
+    particle_radius: float,
+    center: tuple[float, float] = (0.0, 0.0),
+    death_ratio: float = 4.0,
+    launch_margin: float = 4.0,
+    probes: int = 1024,
+    seed: int = 0,
+    backend: BackendKind | str = BackendKind.NUMBA_CPU,
+    restart_mode: RestartMode = RestartMode.UNIFORM_RESTART,
+) -> ProbeResult:
+    """Draw frozen-cluster probes with explicit return-law diagnostics."""
+    array = _validate_probe_arguments(
+        positions,
+        particle_radius,
+        center,
+        death_ratio,
+        launch_margin,
+        probes,
+        seed,
+    )
+    if not isinstance(restart_mode, RestartMode):
+        raise ValueError("restart_mode must be exact-return or uniform-restart")
+    _validate_probe_restart_mode(restart_mode)
+    return create_backend(backend).probe_detailed(
+        array,
+        particle_radius,
+        center,
+        death_ratio,
+        launch_margin,
+        probes,
+        seed,
+        restart_mode,
     )

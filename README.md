@@ -13,12 +13,14 @@ boundaries.
 
 ## Implemented modes
 
-- **Exact Poisson return** - the unbiased circular-boundary baseline.
+- **Exact Poisson return** - the exact circular-boundary return baseline; finite
+  walk-on-spheres tolerance remains a separately reported numerical approximation.
 - **Uniform restart** - the historical approximation, exposed explicitly rather than silently.
 - **Sample-split controlled restart** - search probes select a center and an independent
   validation batch supplies the residual certificate.
-- **Paper-amortized controlled restart** - exact prefix, blockwise one-shot recentering,
-  diameter-scaled death radii, and the paper's probe/block schedule.
+- **Paper-amortized controlled restart** - exact prefix, blockwise recentering with the
+  theorem's stale-center drift budget, diameter-scaled death radii, and the paper's
+  probe/block schedule.
 
 The package also includes:
 

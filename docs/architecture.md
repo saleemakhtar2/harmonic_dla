@@ -68,7 +68,9 @@ counts. Process-level parallelism should be used for independent aggregate ensem
 
 ## Certificate modes
 
-- `exact-return`: unbiased circular return baseline.
+- `exact-return`: exact circular-boundary return law. The configured walk-on-spheres
+  tolerance is still a numerical approximation and is not included in the analytical
+  restart certificate.
 - `uniform-restart`: legacy approximation, no automatic certification.
 - `controlled-restart` + `sample-split-fixed`: empirical center search and independent
   validation under the target-radius residual bound.

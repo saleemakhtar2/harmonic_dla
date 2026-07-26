@@ -1,0 +1,143 @@
+{
+  "backend": "numba-cpu",
+  "cell_seconds": 0.1363146249204874,
+  "complete": true,
+  "config": {
+    "angle_bins": [
+      16,
+      32,
+      64,
+      128
+    ],
+    "backend": "numba-cpu",
+    "evaluation_probes": 50000,
+    "experiment_version": "asymmetric-v1",
+    "launch_margin": 4.0,
+    "particle_radius": 0.5,
+    "phase": "production",
+    "primary_fit_window": [
+      3,
+      4,
+      6,
+      8,
+      12,
+      16
+    ],
+    "rho": 24,
+    "search_probes": 8192
+  },
+  "experiment_version": "asymmetric-v1",
+  "geometry": {
+    "diameter_upper": 52.96862122095129,
+    "metric": {
+      "center": [
+        0.0,
+        0.0
+      ],
+      "death_over_diameter": 11.54494135236033,
+      "death_radius": 611.5196255112716,
+      "diameter_upper": 52.96862122095129,
+      "launch_radius": 27.47998439630298,
+      "target_radius": 25.47998439630298
+    },
+    "metric_center": [
+      0.0,
+      0.0
+    ],
+    "one_shot": {
+      "center": [
+        -0.4926233016422443,
+        -2.0027397727245293
+      ],
+      "death_over_diameter": 10.660457958909074,
+      "death_radius": 564.6697596673303,
+      "diameter_upper": 52.96862122095129,
+      "launch_radius": 25.527906652805427,
+      "target_radius": 23.527906652805427
+    },
+    "one_shot_center": [
+      -0.4926233016422443,
+      -2.0027397727245293
+    ],
+    "target_radius_metric_center": 25.47998439630298,
+    "target_radius_one_shot_center": 23.527906652805427
+  },
+  "particle_radius": 0.5,
+  "phase": "production",
+  "policies": {
+    "one-shot-centered": {
+      "angle_tv": {
+        "128": 0.022699999999999998,
+        "16": 0.0070600000000000124,
+        "32": 0.012679999999999993,
+        "64": 0.016279999999999996
+      },
+      "barycenter_error_over_diameter": 0.0010917902658269603,
+      "bounded_lipschitz": 0.0010375799135566854,
+      "calibration_probes": 8192,
+      "center_residual_over_diameter": 0.038936948932878454,
+      "evaluation_seconds": 0.03817916696425527,
+      "particle_id_tv": 0.0195,
+      "restarts": 5710,
+      "samples": 50000,
+      "search_probes": 8192,
+      "search_seconds": 0.009585499996319413,
+      "seconds": 0.047764666960574687,
+      "seed": 772852757192193043,
+      "walker_steps": 1751848
+    },
+    "uniform": {
+      "angle_tv": {
+        "128": 0.021059999999999995,
+        "16": 0.008559999999999996,
+        "32": 0.011419999999999996,
+        "64": 0.013119999999999995
+      },
+      "barycenter_error_over_diameter": 0.0010174647014919273,
+      "bounded_lipschitz": 0.0010027300469066525,
+      "calibration_probes": 0,
+      "particle_id_tv": 0.019340000000000003,
+      "restarts": 6990,
+      "samples": 50000,
+      "seconds": 0.04160112497629598,
+      "seed": 3886153858215770207,
+      "walker_steps": 1835981
+    }
+  },
+  "primary_fit_window": false,
+  "provenance": {
+    "byteorder": "little",
+    "git_commit": null,
+    "harmonic_dla_version": "0.1.0",
+    "machine": "arm64",
+    "numba_version": "0.66.0",
+    "numpy_version": "2.4.6",
+    "platform": "macOS-26.3.1-arm64-arm-64bit-Mach-O",
+    "python_implementation": "CPython",
+    "python_version": "3.13.1",
+    "source_revision": null
+  },
+  "reference": {
+    "restarts": 6887,
+    "samples": 50000,
+    "seconds": 0.04694883298361674,
+    "seed": 2421818853562130582,
+    "split_half_particle_id_tv": 0.025399999999999992,
+    "split_half_standard_error": 0.0179605122421383,
+    "walker_steps": 1828163
+  },
+  "replication": 18,
+  "replication_seed": 4347430498559036487,
+  "requested_seed": 4347430498559036487,
+  "rho": 24,
+  "schema_version": 1,
+  "seeds": {
+    "center_evaluation": 772852757192193043,
+    "center_search": 1968473573077396501,
+    "exact_evaluation": 2421818853562130582,
+    "uniform_evaluation": 3886153858215770207
+  },
+  "target_digest": "70e15001e60101b350de0dc07670a26a427d1cf1fb4c068fa0abaa0304223b25",
+  "target_name": "dla-911",
+  "target_particle_count": 256
+}

@@ -24,9 +24,7 @@ def main() -> None:
     args = parser.parse_args()
     payload = {
         "created_utc": datetime.now(UTC).isoformat(),
-        "configs": [
-            {"path": str(path), "sha256": sha256(path)} for path in sorted(args.configs)
-        ],
+        "configs": [{"path": str(path), "sha256": sha256(path)} for path in sorted(args.configs)],
     }
     args.output.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n")
 

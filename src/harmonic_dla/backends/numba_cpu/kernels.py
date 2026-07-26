@@ -339,17 +339,20 @@ def grow_block(
 
         positions[count, 0] = x
         positions[count, 1] = y
-        if insert_particle(
-            count,
-            positions,
-            node_center_x,
-            node_center_y,
-            node_half_size,
-            children,
-            counts,
-            items,
-            node_count,
-        ) != 0:
+        if (
+            insert_particle(
+                count,
+                positions,
+                node_center_x,
+                node_center_y,
+                node_half_size,
+                children,
+                counts,
+                items,
+                node_count,
+            )
+            != 0
+        ):
             return count, walker_steps, restarts, -5, radius, min_x, max_x, min_y, max_y
 
         center_dx = x - center_x
@@ -394,8 +397,9 @@ def probe_batch(
     tolerance: float,
     max_steps: int,
     max_restarts: int,
+    restart_mode: int,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-    """Draw independent uniform-restart probes in parallel."""
+    """Draw independent frozen-cluster probes in parallel."""
     capture_distance = 2.0 * particle_radius
     radius, min_x, max_x, min_y, max_y = geometry_scan(
         positions,
@@ -422,7 +426,7 @@ def probe_batch(
     statuses = np.empty(probes, dtype=np.int32)
     step_counts = np.empty(probes, dtype=np.int64)
     restart_counts = np.empty(probes, dtype=np.int64)
-    for probe_index in prange(probes):
+    for probe_index in prange(probes):  # ty: ignore[not-iterable]
         x, y, steps, restarts, status = walk_attachment(
             master_seed,
             stream_offset + probe_index,
@@ -439,7 +443,7 @@ def probe_batch(
             capture_distance,
             birth_radius,
             death_radius,
-            UNIFORM_RESTART,
+            restart_mode,
             tolerance,
             max_steps,
             max_restarts,

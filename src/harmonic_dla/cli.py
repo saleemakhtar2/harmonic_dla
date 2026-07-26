@@ -4,11 +4,14 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import sys
 from collections.abc import Sequence
 from dataclasses import replace
 from pathlib import Path
 from typing import Any
+
+import numba
 
 from harmonic_dla import __version__
 from harmonic_dla.analysis import bounding_box_diameter_upper, radius_about
@@ -27,13 +30,23 @@ from harmonic_dla.config import (
     load_config,
 )
 from harmonic_dla.enums import BackendKind, RestartMode
-from harmonic_dla.exceptions import HarmonicDLAError
+from harmonic_dla.exceptions import CheckpointError, HarmonicDLAError
 from harmonic_dla.io import load_result
 
 
 def _summary(result_path: Path) -> dict[str, Any]:
     result = load_result(result_path)
-    center_raw = result.metadata.get("final_center", [0.0, 0.0])
+    if result.metadata.get("complete") is not True:
+        raise CheckpointError(f"result archive is incomplete: {result_path}")
+    center_raw = result.metadata.get("final_center")
+    if (
+        not isinstance(center_raw, (list, tuple))
+        or len(center_raw) != 2
+        or not all(
+            isinstance(value, (int, float)) and math.isfinite(float(value)) for value in center_raw
+        )
+    ):
+        raise CheckpointError("result metadata is missing a finite final_center")
     center = (float(center_raw[0]), float(center_raw[1]))
     return {
         "path": str(result_path),
@@ -60,6 +73,8 @@ def _run(args: argparse.Namespace) -> int:
     config = load_config(args.config)
     output = Path(args.output) if args.output else config.output.path
     overwrite = bool(args.overwrite or config.output.overwrite)
+    if output.exists() and not overwrite:
+        raise CheckpointError(f"refusing to overwrite existing output: {output}")
     config = replace(config, output=replace(config.output, path=output, overwrite=overwrite))
     result = simulate(config)
     saved = result.save(output, overwrite=overwrite)
@@ -82,6 +97,14 @@ def _inspect(args: argparse.Namespace) -> int:
 
 def _check_config(args: argparse.Namespace) -> int:
     config = load_config(args.config)
+    requested_threads = config.performance.threads
+    if requested_threads > 0:
+        capacity = int(numba.get_num_threads())
+        if requested_threads > capacity:
+            raise ValueError(
+                "performance.threads exceeds the active Numba thread capacity "
+                f"({requested_threads} > {capacity})"
+            )
     print(repr(config))
     return 0
 
