@@ -1,0 +1,26 @@
+particles = 10000
+particle_radius = 0.5
+seed = 42
+backend = "numba-cpu"
+
+[walker]
+tolerance = 1e-6
+max_steps = 100000
+max_restarts = 100000
+
+[boundary]
+restart_mode = "exact-return"
+death_ratio = 4.0
+launch_margin = 4.0
+center = [0.0, 0.0]
+
+[performance]
+threads = 0
+quadtree_bucket_size = 12
+quadtree_node_factor = 10
+growth_chunk_size = 0
+
+[output]
+path = "outputs/exact-cluster.npz"
+checkpoint_every = 0
+overwrite = false

@@ -1,0 +1,32 @@
+particles = 100000
+particle_radius = 0.5
+seed = 42
+backend = "numba-cpu"
+
+[boundary]
+restart_mode = "controlled-restart"
+# Used only by the exact prefix and as a fallback fixed-ratio setting.
+death_ratio = 4.0
+launch_margin = 4.0
+center = [0.0, 0.0]
+
+[calibration]
+enabled = true
+strategy = "paper-amortized"
+pilot = "previous-center"
+alpha = 0.48
+gamma = 0.06
+scale = 2.0
+start = 1024
+failure_budget = 1e-3
+exact_prefix = true
+
+[performance]
+threads = 0
+quadtree_bucket_size = 12
+quadtree_node_factor = 10
+
+[output]
+path = "outputs/paper-amortized-cluster.npz"
+checkpoint_every = 10000
+overwrite = false

@@ -1,0 +1,28 @@
+particles = 10000
+particle_radius = 0.5
+seed = 42
+backend = "numba-cpu"
+
+[boundary]
+restart_mode = "controlled-restart"
+death_ratio = 4.0
+launch_margin = 4.0
+center = [0.0, 0.0]
+
+[calibration]
+enabled = true
+strategy = "sample-split-fixed"
+search_probes = 4096
+validation_probes = 4096
+block_size = 256
+confidence_failure = 1e-4
+pilot = "previous-center"
+
+[performance]
+threads = 0
+quadtree_bucket_size = 12
+quadtree_node_factor = 10
+
+[output]
+path = "outputs/controlled-fixed-cluster.npz"
+overwrite = false

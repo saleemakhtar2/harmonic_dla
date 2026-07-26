@@ -1,0 +1,19 @@
+particles = 10000
+particle_radius = 0.5
+seed = 42
+backend = "numba-cpu"
+
+[boundary]
+restart_mode = "uniform-restart"
+death_ratio = 4.0
+launch_margin = 4.0
+center = [0.0, 0.0]
+
+[performance]
+threads = 0
+quadtree_bucket_size = 12
+quadtree_node_factor = 10
+
+[output]
+path = "outputs/uniform-cluster.npz"
+overwrite = false

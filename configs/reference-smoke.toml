@@ -1,0 +1,13 @@
+particles = 50
+particle_radius = 0.5
+seed = 7
+backend = "reference"
+
+[boundary]
+restart_mode = "exact-return"
+death_ratio = 3.0
+launch_margin = 3.0
+
+[output]
+path = "outputs/reference-smoke.npz"
+overwrite = true
