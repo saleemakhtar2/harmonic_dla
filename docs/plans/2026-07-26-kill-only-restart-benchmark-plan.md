@@ -36,7 +36,7 @@
 
 **Does NOT cover:** It validates report inputs and policy eligibility; it does not alter walker execution, restart laws, or package APIs.
 
-- [ ] **Step 1: Write failing capability and validation tests**
+- [x] **Step 1: Write failing capability and validation tests**
 
 ```python
 from pathlib import Path
@@ -79,13 +79,13 @@ def test_committed_inputs_validate() -> None:
     assert len(static["records"]) == 720
 ```
 
-- [ ] **Step 2: Run the tests and confirm the module is absent**
+- [x] **Step 2: Run the tests and confirm the module is absent**
 
 Run: `PYTHONPATH=src:. .venv/bin/pytest -q tests/unit/test_kill_only_restart_report.py`
 
 Expected: FAIL during collection with `ModuleNotFoundError`.
 
-- [ ] **Step 3: Add the capability contract and strict loaders**
+- [x] **Step 3: Add the capability contract and strict loaders**
 
 ```python
 CAPABILITIES = {
@@ -134,7 +134,7 @@ def validate_inputs(static: dict[str, Any], dynamics: list[dict[str, Any]]) -> N
                 raise ValueError(f"dynamic artifact is missing {policy}")
 ```
 
-- [ ] **Step 4: Run focused tests**
+- [x] **Step 4: Run focused tests**
 
 Run: `PYTHONPATH=src:. .venv/bin/pytest -q tests/unit/test_kill_only_restart_report.py`
 
@@ -150,7 +150,7 @@ Expected: PASS.
 
 **Does NOT cover:** The report labels exact Poisson as oracle-only under the constrained interface; it does not remove exact Poisson from the unconstrained benchmark or claim universal superiority.
 
-- [ ] **Step 1: Add a failing PDF content test**
+- [x] **Step 1: Add a failing PDF content test**
 
 ```python
 from pypdf import PdfReader
@@ -177,13 +177,13 @@ def test_build_report_discloses_oracle_and_exact_prefix(tmp_path: Path) -> None:
     assert 5 <= len(PdfReader(output).pages) <= 8
 ```
 
-- [ ] **Step 2: Run the PDF test and confirm `build_report` is absent**
+- [x] **Step 2: Run the PDF test and confirm `build_report` is absent**
 
 Run: `PYTHONPATH=src:. .venv/bin/pytest -q tests/unit/test_kill_only_restart_report.py`
 
 Expected: FAIL importing or calling `build_report`.
 
-- [ ] **Step 3: Implement derived summaries and four sharp visualizations**
+- [x] **Step 3: Implement derived summaries and four sharp visualizations**
 
 Implement:
 
@@ -222,7 +222,7 @@ Create charts:
 3. `eligible_pareto.png`: static accuracy versus measured policy time with exact Poisson annotated outside the eligible frontier as oracle-only.
 4. `dynamic_calibration.png`: runtime and calibration probes at `N=1,200` and `N=3,000`, using hollow markers for oracle-only exact Poisson.
 
-- [ ] **Step 4: Compose a polished 6-page ReportLab document**
+- [x] **Step 4: Compose a polished 6-page ReportLab document**
 
 Build these pages:
 
@@ -236,7 +236,7 @@ Build these pages:
 Add a page callback with consistent header, footer, and `Page N` numbering.
 Use ASCII hyphens throughout the source text.
 
-- [ ] **Step 5: Run focused tests**
+- [x] **Step 5: Run focused tests**
 
 Run: `PYTHONPATH=src:. .venv/bin/pytest -q tests/unit/test_kill_only_restart_report.py`
 
@@ -253,7 +253,7 @@ Expected: PASS with a 5-8 page PDF containing all required disclosures.
 
 **Security flag:** none
 
-- [ ] **Step 1: Generate the report from canonical inputs**
+- [x] **Step 1: Generate the report from canonical inputs**
 
 Run:
 
@@ -268,7 +268,7 @@ PYTHONPATH=src:. .venv/bin/python scripts/generate_kill_only_restart_report.py \
 
 Expected: the final PDF and four PNG figures are written without warnings or omitted data.
 
-- [ ] **Step 2: Run logical PDF checks**
+- [x] **Step 2: Run logical PDF checks**
 
 Run:
 
@@ -278,7 +278,7 @@ Run:
 
 Expected: page count and byte size are printed; every assertion passes.
 
-- [ ] **Step 3: Render every page**
+- [x] **Step 3: Render every page**
 
 Run:
 
@@ -291,7 +291,7 @@ pdftoppm -png -r 150 \
 
 Expected: one non-empty PNG per PDF page.
 
-- [ ] **Step 4: Inspect all rendered pages**
+- [x] **Step 4: Inspect all rendered pages**
 
 Inspect each page PNG at original or high detail. Check headings, body text,
 tables, captions, axes, legends, margins, page numbers, and line breaks.
@@ -306,7 +306,7 @@ the entire changed page set again.
 
 **Security flag:** none
 
-- [ ] **Step 1: Run complete verification**
+- [x] **Step 1: Run complete verification**
 
 Run:
 
@@ -320,7 +320,7 @@ git diff --check
 
 Expected: all tests pass; Ruff, formatting, ty, and whitespace checks are clean.
 
-- [ ] **Step 2: Confirm the intended commit set**
+- [x] **Step 2: Confirm the intended commit set**
 
 Run:
 
@@ -332,7 +332,7 @@ git diff --stat
 Expected: existing local-only workflow, older report, benchmark, and `tmp/`
 files remain untracked and are not staged.
 
-- [ ] **Step 3: Commit the report**
+- [x] **Step 3: Commit the report**
 
 Run:
 
@@ -349,7 +349,7 @@ git commit -m "Add kill-only restart benchmark report"
 
 Expected: one commit containing only the intended benchmark/report artifacts.
 
-- [ ] **Step 4: Push and verify the remote tip**
+- [x] **Step 4: Push and verify the remote tip**
 
 Run:
 
