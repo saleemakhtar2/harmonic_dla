@@ -3,7 +3,7 @@ title: harmonic-dla
 message: "Please cite both the software release and the accompanying paper."
 type: software
 authors:
-  - name: "Paper authors"
+  - name: "Saleem Akhtar"
 version: 0.1.0
 date-released: 2026-07-26
 license: BSD-3-Clause
@@ -11,5 +11,5 @@ preferred-citation:
   type: article
   title: "Self-Consistent and Amortized Centering for Finite-Boundary Restart in Planar Diffusion-Limited Aggregation"
   authors:
-    - name: "Paper authors"
+    - name: "Saleem Akhtar"
   year: 2026
